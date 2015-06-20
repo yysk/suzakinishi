@@ -1,0 +1,61 @@
+<manifest package="works.langley.suzakinishi"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <application
+        android:name=".SznApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <receiver android:name=".receiver.MusicPlayerReceiver">
+            <intent-filter>
+                <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receiver.StateChangeReceiver">
+            <intent-filter>
+                <action android:name="works.langley.suzakinishi.service.ACTION_STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receiver.VolumeChangeReceiver">
+            <intent-filter>
+                <action android:name="android.media.VOLUME_CHANGED_ACTION"/>
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".service.MusicPlayerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="works.langley.suzakinishi.service.ACTION_PLAYPAUSE"/>
+                <action android:name="works.langley.suzakinishi.service.ACTION_PLAY"/>
+                <action android:name="works.langley.suzakinishi.service.ACTION_PAUSE"/>
+                <action android:name="works.langley.suzakinishi.service.ACTION_SKIP"/>
+                <action android:name="works.langley.suzakinishi.service.ACTION_REWIND"/>
+                <action android:name="works.langley.suzakinishi.service.ACTION_STOP"/>
+                <action android:name="works.langley.suzakinishi.service.ACTION_REQUEST_STATE"/>
+                <action android:name="works.langley.suzakinishi.service.ACTION_SEEK"/>
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

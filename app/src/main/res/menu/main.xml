@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="works.langley.suzakinishi.ui.activity.MainActivity">
+
+    <item
+        android:id="@+id/action_email"
+        android:icon="@drawable/ic_action_content_create"
+        android:title="@string/action_email"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_web"
+        android:icon="@drawable/ic_action_launch"
+        android:title="@string/action_web"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_license"
+        android:title="@string/action_license"
+        app:showAsAction="never"/>
+</menu>

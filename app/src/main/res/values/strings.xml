@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">suzakinishi</string>
+    <string name="text_empty">----</string>
+    <string name="time_empty">--:--</string>
+    <string name="separator">"/"</string>
+
+    <string name="action_web">公式サイト</string>
+    <string name="action_email">メールを送る</string>
+    <string name="action_license">ライセンス情報</string>
+
+    <string name="title_license">オープンソースライセンス</string>
+    <string name="close">閉じる</string>
+</resources>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SeekBar
+        android:id="@+id/track_bar"
+        style="@style/SeekBarTrack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"/>
+
+    <ImageView
+        android:id="@+id/button_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/track_bar"
+        android:layout_centerHorizontal="true"
+        android:padding="@dimen/spacing_large"
+        android:src="@drawable/ic_action_av_pause"/>
+
+    <SeekBar
+        android:id="@+id/volume_bar"
+        style="@style/SeekBarVolume"
+        android:layout_width="256dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/button_pause"
+        android:layout_marginBottom="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_medium"/>
+
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/volume_bar"
+        android:layout_toLeftOf="@id/volume_bar"
+        android:layout_toStartOf="@id/volume_bar"
+        android:src="@drawable/ic_av_volume_mute"
+        android:paddingBottom="@dimen/spacing_small"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/volume_bar"
+        android:layout_toEndOf="@id/volume_bar"
+        android:layout_toRightOf="@id/volume_bar"
+        android:src="@drawable/ic_av_volume_up"
+        android:paddingBottom="@dimen/spacing_small"/>
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/text_playing"
+        style="@style/TextBase.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/volume_bar"
+        android:layout_marginBottom="@dimen/spacing_medium"
+        android:layout_marginLeft="@dimen/spacing_xlarge"
+        android:layout_marginStart="@dimen/spacing_xlarge"
+        android:layout_toLeftOf="@+id/chrono_current"
+        android:layout_toStartOf="@+id/chrono_current"
+        android:ellipsize="end"
+        android:singleLine="true"/>
+
+    <Chronometer
+        android:id="@+id/chrono_current"
+        style="@style/TextBase.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/text_playing"
+        android:layout_toLeftOf="@+id/time_separator"
+        android:layout_toStartOf="@+id/time_separator"/>
+
+    <TextView
+        android:id="@+id/time_separator"
+        style="@style/TextBase.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/text_playing"
+        android:layout_toLeftOf="@+id/chrono_duration"
+        android:layout_toStartOf="@+id/chrono_duration"
+        android:text="@string/separator"/>
+
+    <Chronometer
+        android:id="@+id/chrono_duration"
+        style="@style/TextBase.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/text_playing"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="@dimen/spacing_xlarge"
+        android:layout_marginRight="@dimen/spacing_xlarge"/>
+</merge>

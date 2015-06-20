@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:background="@drawable/background"
+    android:clipChildren="false">
+
+
+    <io.codetail.widget.RevealFrameLayout
+        android:id="@+id/container_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/primary"
+        android:clipChildren="false">
+
+        <LinearLayout
+            android:id="@+id/container_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/spacing_xlarge"
+            android:paddingRight="@dimen/spacing_xlarge"
+            android:paddingTop="@dimen/spacing_title_view"
+            android:paddingBottom="@dimen/spacing_title_view">
+
+            <android.support.v7.widget.AppCompatTextView
+                android:id="@+id/text_title"
+                style="@style/TextBase.XXLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:id="@+id/text_author"
+                style="@style/TextBase.Medium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"/>
+        </LinearLayout>
+
+        <works.langley.suzakinishi.ui.view.PlayerView
+            android:id="@+id/view_player"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/accent"
+            android:visibility="invisible"
+            android:clipChildren="false"/>
+
+    </io.codetail.widget.RevealFrameLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/button_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/container_bottom_bar"
+        android:layout_alignEnd="@id/container_bottom_bar"
+        android:layout_alignRight="@id/container_bottom_bar"
+        android:layout_gravity="top|end"
+        android:layout_marginBottom="@dimen/floating_margin"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_marginRight="@dimen/spacing_large"
+        android:src="@drawable/ic_action_av_play"
+        app:borderWidth="0dp"
+        app:fabSize="normal"/>
+
+    <include
+        android:id="@+id/loading"
+        layout="@layout/loading"/>
+</RelativeLayout>
