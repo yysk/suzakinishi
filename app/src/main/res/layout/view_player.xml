@@ -15,7 +15,8 @@
         android:layout_below="@id/track_bar"
         android:layout_centerHorizontal="true"
         android:padding="@dimen/spacing_large"
-        android:src="@drawable/ic_action_av_pause"/>
+        android:src="@drawable/ic_action_av_pause"
+        android:background="@drawable/selector_button_pause"/>
 
     <SeekBar
         android:id="@+id/volume_bar"
