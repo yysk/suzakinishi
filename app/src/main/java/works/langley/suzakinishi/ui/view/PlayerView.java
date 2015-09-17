@@ -152,8 +152,9 @@ public class PlayerView extends RelativeLayout {
     public void updatePlayer(Intent intent) {
         Info info = intent.getParcelableExtra("info");
         if (info != null) {
-            if (!TextUtils.isEmpty(info.title)) {
-                mTextPlaying.setText(info.title);
+            String title = info.getTitle();
+            if (!TextUtils.isEmpty(title)) {
+                mTextPlaying.setText(title);
             }
         }
         int duration = (int) intent.getLongExtra("duration", 0);
