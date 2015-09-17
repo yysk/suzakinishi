@@ -244,7 +244,7 @@ public class MainFragment extends Fragment {
             if (info == null) {
                 return;
             }
-            Timber.d(info.url);
+            Timber.d(info.getUrl());
             Intent intent = new Intent(getActivity(), MusicPlayerService.class)
                     .setAction(MusicPlayerService.ACTION_REQUEST_STATE)
                     .putExtra("info", info);
@@ -266,11 +266,13 @@ public class MainFragment extends Fragment {
         Intent intent = event.getIntent();
         Info info = intent.getParcelableExtra("info");
         if (info != null) {
-            if (!TextUtils.isEmpty(info.title)) {
-                mTextTitle.setText(info.title);
+            String title = info.getTitle();
+            if (!TextUtils.isEmpty(title)) {
+                mTextTitle.setText(title);
             }
-            if (!TextUtils.isEmpty(info.author)) {
-                mTextAuthor.setText(info.author);
+            String author = info.getAuthor();
+            if (!TextUtils.isEmpty(author)) {
+                mTextAuthor.setText(author);
             }
         }
 

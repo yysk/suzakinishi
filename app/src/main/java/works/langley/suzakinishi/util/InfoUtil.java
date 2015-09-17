@@ -35,7 +35,6 @@ public final class InfoUtil {
      */
     public static Info getInfo() {
         try {
-            Info info = new Info();
             Document doc = Jsoup.connect(MAIN_URL).timeout(10000).get();
             List<Element> elements = doc.getElementsByTag(TAG_A);
 
@@ -46,23 +45,35 @@ public final class InfoUtil {
                     Timber.d("url : %s", href);
                     Timber.d(document.html());
 
-                    List<Element> titleList = document.getElementsByTag(TAG_TITLE);
-                    if (titleList != null && !titleList.isEmpty()) {
-                        info.title = titleList.get(0).ownText();
-                    }
-                    List<Element> authorList = document.getElementsByTag(TAG_AUTHOR);
-                    if (authorList != null && !authorList.isEmpty()) {
-                        info.author = authorList.get(0).ownText();
-                    }
-                    List<Element> refList = document.getElementsByTag(TAG_REF);
-                    if (refList != null && !refList.isEmpty()) {
-                        info.url = refList.get(0).attr(ATTR_HREF);
-                    }
-                    return info;
+                    return new Info(getInfoTitle(document), getInfoAuthor(document), getElementAttribute(document));
                 }
             }
         } catch (IOException e) {
             Timber.e(e, e.getMessage());
+        }
+        return null;
+    }
+
+    private static String getInfoTitle(Document document) {
+        return getElementText(document, TAG_TITLE);
+    }
+
+    private static String getInfoAuthor(Document document) {
+        return getElementText(document, TAG_AUTHOR);
+    }
+
+    private static String getElementText(Document document, String tag) {
+        List<Element> elements = document.getElementsByTag(tag);
+        if (elements != null && !elements.isEmpty()) {
+            return elements.get(0).ownText();
+        }
+        return null;
+    }
+
+    private static String getElementAttribute(Document document) {
+        List<Element> elements = document.getElementsByTag(TAG_REF);
+        if (elements != null && !elements.isEmpty()) {
+            return elements.get(0).attr(ATTR_HREF);
         }
         return null;
     }

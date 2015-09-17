@@ -320,7 +320,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
 
         try {
             createMediaPlayerIfNeeded();
-            mMediaPlayer.setDataSource(mInfo.url);
+            mMediaPlayer.setDataSource(mInfo.getUrl());
 
             mState = State.Preparing;
 
@@ -393,8 +393,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
                 .setOngoing(true)
                 .setAutoCancel(false)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setContentTitle(mInfo.title)
-                .setContentText(mInfo.author)
+                .setContentTitle(mInfo.getTitle())
+                .setContentText(mInfo.getAuthor())
                 .setWhen(0);
         mNotificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
     }
