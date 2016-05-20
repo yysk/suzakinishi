@@ -10,4 +10,8 @@
 
     <string name="title_license">オープンソースライセンス</string>
     <string name="close">閉じる</string>
+
+    <string name="loading">読込中&#8230;</string>
+    <string name="error_no_network">インターネットに接続できません。\n通信環境をご確認ください。</string>
+    <string name="error_other">情報の更新に失敗しました。\nしばらくしてからもう一度お試しください。</string>
 </resources>

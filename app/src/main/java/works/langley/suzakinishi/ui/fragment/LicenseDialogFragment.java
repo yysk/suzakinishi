@@ -1,17 +1,19 @@
 package works.langley.suzakinishi.ui.fragment;
 
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
 import java.io.IOException;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import timber.log.Timber;
 import works.langley.suzakinishi.R;
 import works.langley.suzakinishi.util.AssetUtil;
@@ -21,12 +23,15 @@ public class LicenseDialogFragment extends DialogFragment {
     public LicenseDialogFragment() {
     }
 
+    @Bind(R.id.text_license)
+    TextView mTextView;
+
     @NonNull
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_license_dialog, null, false);
-        TextView textView = (TextView) view.findViewById(R.id.text_license);
-        textView.setText(loadLicenseText());
+    public AppCompatDialog onCreateDialog(Bundle savedInstanceState) {
+        final View view = LayoutInflater.from(getContext()).inflate(R.layout.fragment_license_dialog, null, false);
+        ButterKnife.bind(this, view);
+        mTextView.setText(loadLicenseText());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.title_license)

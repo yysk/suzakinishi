@@ -1,23 +1,21 @@
 package works.langley.suzakinishi.ui.activity;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import io.vov.vitamio.LibsChecker;
-import works.langley.suzakinishi.Constant;
 import works.langley.suzakinishi.R;
 import works.langley.suzakinishi.ui.fragment.LicenseDialogFragment;
+import works.langley.suzakinishi.util.IntentUtil;
 
 public class MainActivity extends AppCompatActivity {
 
-    @InjectView(R.id.toolbar_actionbar)
+    @Bind(R.id.toolbar_actionbar)
     Toolbar mToolbarActionbar;
 
     @Override
@@ -27,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         setContentView(R.layout.activity_main);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         setupToolbar();
     }
@@ -48,13 +46,13 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         switch (id) {
             case R.id.action_web:
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constant.URL_HOMEPAGE)));
+                startActivity(IntentUtil.createWebIntent());
                 break;
             case R.id.action_email:
-                startActivity(new Intent(Intent.ACTION_SENDTO, Uri.parse(Constant.URL_MAIL)));
+                startActivity(IntentUtil.createMailIntent());
                 break;
             case R.id.action_license:
-                new LicenseDialogFragment().show(getFragmentManager(), "license_dialog_fragment");
+                new LicenseDialogFragment().show(getSupportFragmentManager(), "license_dialog_fragment");
                 break;
         }
         return super.onOptionsItemSelected(item);

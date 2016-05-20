@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
+import rx.Observable;
+import rx.Subscriber;
 import timber.log.Timber;
 import works.langley.suzakinishi.Constant;
 import works.langley.suzakinishi.model.Info;
@@ -26,32 +28,36 @@ public final class InfoUtil {
     private static final String TAG_AUTHOR = "author";
     private static final String ATTR_HREF = "href";
     private static final String EXTENSION_WAX = ".wax";
-    private static final String EXTENSION_WMA = ".wma";
 
     /**
      * HPから配信ファイルの情報を取得
      *
-     * @return
+     * @return Observable<Info>
      */
-    public static Info getInfo() {
-        try {
-            Document doc = Jsoup.connect(MAIN_URL).timeout(10000).get();
-            List<Element> elements = doc.getElementsByTag(TAG_A);
+    public static Observable<Info> getInfo() {
+        return Observable.create(new Observable.OnSubscribe<Info>() {
+            @Override
+            public void call(Subscriber<? super Info> subscriber) {
+                try {
+                    Document doc = Jsoup.connect(MAIN_URL).timeout(1000).get();
+                    List<Element> elements = doc.getElementsByTag(TAG_A);
 
-            for (Element element : elements) {
-                String href = element.attr(ATTR_HREF);
-                if (!TextUtils.isEmpty(href) && href.endsWith(EXTENSION_WAX)) {
-                    Document document = Jsoup.parse(new URL(href).openStream(), "Shift_JIS", href);
-                    Timber.d("url : %s", href);
-                    Timber.d(document.html());
+                    for (Element element : elements) {
+                        String href = element.attr(ATTR_HREF);
+                        if (!TextUtils.isEmpty(href) && href.endsWith(EXTENSION_WAX)) {
+                            Document document = Jsoup.parse(new URL(href).openStream(), "Shift_JIS", href);
+                            Timber.d("url : %s", href);
+                            Timber.d(document.html());
 
-                    return new Info(getInfoTitle(document), getInfoAuthor(document), getElementAttribute(document));
+                            subscriber.onNext(new Info(getInfoTitle(document), getInfoAuthor(document), getElementAttribute(document)));
+                            subscriber.onCompleted();
+                        }
+                    }
+                } catch (IOException e) {
+                    subscriber.onError(e);
                 }
             }
-        } catch (IOException e) {
-            Timber.e(e, e.getMessage());
-        }
-        return null;
+        });
     }
 
     private static String getInfoTitle(Document document) {
