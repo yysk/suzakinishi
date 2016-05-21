@@ -1,7 +1,7 @@
 suzakinishi
 ====
 
-
+#### This application doesn't work for the specification change of the web site.
 
 An unofficial Android application of radio program [洲崎西][suzakinishi].
 
