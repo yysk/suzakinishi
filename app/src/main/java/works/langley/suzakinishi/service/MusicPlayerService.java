@@ -41,31 +41,13 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
     private MediaPlayer mMediaPlayer = null;
     private AudioFocusHelper mAudioFocusHelper = null;
 
-    // indicates the state our service:
-    public enum State {
-        Retrieving,
-        Stopped,
-        Preparing,
-        Playing,
-        Paused,
-        Seek,
-        SeekStart
-    }
-
     private WifiManager.WifiLock mWifiLock;
 
-    private State mState = State.Retrieving;
+    private PlayerState mPlayerState = PlayerState.Retrieving;
 
     // if in Retrieving mode, this flag indicates whether we should start
     // playing immediately when we are ready or not.
     boolean mStartPlayingAfterRetrieve = false;
-
-    // do we have audio focus?
-    enum AudioFocus {
-        NoFocusNoDuck,    // we don't have audio focus, and can't duck
-        NoFocusCanDuck,    // we don't have focus, but can play at a low volume ("ducking")
-        Focused            // we have full audio focus
-    }
 
     private AudioFocus mAudioFocus = AudioFocus.NoFocusNoDuck;
 
@@ -83,7 +65,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
             while (true) {
                 // 停止後5分再生がなかったらサービスを止める
                 boolean needSleep = false;
-                if (mState == MusicPlayerService.State.Preparing || mState == MusicPlayerService.State.Playing || mState == MusicPlayerService.State.Paused) {
+                if (mPlayerState == PlayerState.Preparing || mPlayerState == PlayerState.Playing || mPlayerState == PlayerState.Paused) {
                     needSleep = true;
                 } else if (mRelaxTime + 5 * 1000 * 60 > System.currentTimeMillis()) {
                     needSleep = true;
@@ -134,7 +116,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent.getExtras() != null && intent.getExtras().containsKey("info")) {
             mInfo = intent.getParcelableExtra("info");
-            mState = State.Stopped;
+            mPlayerState = PlayerState.Stopped;
             sendPlayerState();
         }
         String action = intent.getAction();
@@ -187,37 +169,37 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
     private void processPlayRequest() {
         tryToGetAudioFocus();
 
-        if (mState == State.Stopped) {
+        if (mPlayerState == PlayerState.Stopped) {
             playAudio();
-        } else if (mState == State.Paused) {
-            mState = State.Playing;
+        } else if (mPlayerState == PlayerState.Paused) {
+            mPlayerState = PlayerState.Playing;
             startMediaPlayer();
         }
     }
 
     private void processSeekRequest(int seek) {
-        if (mState == State.Retrieving) {
+        if (mPlayerState == PlayerState.Retrieving) {
             mStartPlayingAfterRetrieve = true;
             return;
         }
 
         tryToGetAudioFocus();
 
-        if (mState == State.SeekStart) {
-            mState = State.Seek;
+        if (mPlayerState == PlayerState.SeekStart) {
+            mPlayerState = PlayerState.Seek;
             seekMediaPlayer(seek);
         }
     }
 
     private void processSeekStartRequest() {
-        if (mState == State.Retrieving) {
+        if (mPlayerState == PlayerState.Retrieving) {
             mStartPlayingAfterRetrieve = false;
             return;
         }
 
-        if (mState == State.Playing) {
+        if (mPlayerState == PlayerState.Playing) {
             // Pause media player and cancel the 'foreground service' state.
-            mState = State.SeekStart;
+            mPlayerState = PlayerState.SeekStart;
             mMediaPlayer.pause();
             relaxResources(false); // while paused, we always retain the MediaPlayer do not give up audio focus
             sendPlayerState();
@@ -225,14 +207,14 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
     }
 
     private void processPauseRequest() {
-        if (mState == State.Retrieving) {
+        if (mPlayerState == PlayerState.Retrieving) {
             mStartPlayingAfterRetrieve = false;
             return;
         }
 
-        if (mState == State.Playing) {
+        if (mPlayerState == PlayerState.Playing) {
             // Pause media player and cancel the 'foreground service' state.
-            mState = State.Paused;
+            mPlayerState = PlayerState.Paused;
             mMediaPlayer.pause();
             relaxResources(false); // while paused, we always retain the MediaPlayer do not give up audio focus
             sendPlayerState();
@@ -240,8 +222,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
     }
 
     private void processStopRequest() {
-        if (mState == State.Playing || mState == State.Paused) {
-            mState = State.Stopped;
+        if (mPlayerState == PlayerState.Playing || mPlayerState == PlayerState.Paused) {
+            mPlayerState = PlayerState.Stopped;
 
             // let go of all resources...
             relaxResources(true);
@@ -281,7 +263,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
         if (mAudioFocus == AudioFocus.NoFocusNoDuck) {
             if (mMediaPlayer.isPlaying()) {
                 mMediaPlayer.pause();
-                mState = State.Paused;
+                mPlayerState = PlayerState.Paused;
                 sendPlayerState();
             }
             return false;
@@ -315,14 +297,14 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
     }
 
     private void playAudio() {
-        mState = State.Stopped;
+        mPlayerState = PlayerState.Stopped;
         relaxResources(false); // release everything except MediaPlayer
 
         try {
             createMediaPlayerIfNeeded();
             mMediaPlayer.setDataSource(mInfo.getUrl());
 
-            mState = State.Preparing;
+            mPlayerState = PlayerState.Preparing;
 
             // Use the media button APIs (if available) to register ourselves
             // for media button events
@@ -335,8 +317,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
 
     @Override
     public boolean onInfo(MediaPlayer mp, int what, int extra) {
-        if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END && mState != State.Playing) {
-            mState = State.Playing;
+        if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END && mPlayerState != PlayerState.Playing) {
+            mPlayerState = PlayerState.Playing;
             startMediaPlayer();
         }
         return true;
@@ -344,7 +326,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
 
     @Override
     public void onPrepared(MediaPlayer player) {
-        mState = State.Playing;
+        mPlayerState = PlayerState.Playing;
         // optional need Vitamio 4.0
         player.setPlaybackSpeed(1.0f);
         sendPlayerState();
@@ -362,7 +344,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
         Toast.makeText(getApplicationContext(), "Media player error! Resetting.", Toast.LENGTH_SHORT).show();
         Timber.e("Error : what=%d, extra=%d", what, extra);
 
-        mState = State.Stopped;
+        mPlayerState = PlayerState.Stopped;
         relaxResources(true);
         clearAudioFocus();
         return true;
@@ -370,7 +352,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
 
     @Override
     public void onDestroy() {
-        mState = State.Stopped;
+        mPlayerState = PlayerState.Stopped;
         relaxResources(true);
         clearAudioFocus();
         resetWifi();
@@ -403,7 +385,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
         mAudioFocus = AudioFocus.Focused;
 
         // restart media player with new focus settings
-        if (mState == State.Playing) {
+        if (mPlayerState == PlayerState.Playing) {
             startMediaPlayer();
         }
     }
@@ -420,7 +402,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnInfoLis
     private void sendPlayerState() {
         Intent intent = new Intent(ACTION_STATE_CHANGED);
         intent.putExtra("info", mInfo);
-        intent.putExtra("state", mState);
+        intent.putExtra("state", mPlayerState);
         if (mMediaPlayer != null) {
             intent.putExtra("duration", mMediaPlayer.getDuration());
             intent.putExtra("currentPosition", mMediaPlayer.getCurrentPosition());

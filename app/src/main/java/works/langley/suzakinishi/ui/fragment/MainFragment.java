@@ -3,9 +3,7 @@ package works.langley.suzakinishi.ui.fragment;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Fragment;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -21,10 +19,21 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
+import com.trello.rxlifecycle.components.support.RxFragment;
 
+import java.io.IOException;
+
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.OnClick;
+import icepick.Icepick;
+import icepick.State;
 import io.codetail.animation.SupportAnimator;
+import rx.Observable;
+import rx.SingleSubscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 import works.langley.suzakinishi.R;
 import works.langley.suzakinishi.event.BusProvider;
@@ -33,80 +42,84 @@ import works.langley.suzakinishi.event.StateChangeEvent;
 import works.langley.suzakinishi.event.VolumeChangeEvent;
 import works.langley.suzakinishi.model.Info;
 import works.langley.suzakinishi.service.MusicPlayerService;
+import works.langley.suzakinishi.service.PlayerState;
 import works.langley.suzakinishi.ui.view.PlayerView;
 import works.langley.suzakinishi.util.InfoUtil;
+import works.langley.suzakinishi.util.Observables;
+import works.langley.suzakinishi.util.ToastUtil;
 
-public class MainFragment extends Fragment {
+public class MainFragment extends RxFragment {
 
-    @InjectView(R.id.text_title)
+    @Bind(R.id.text_title)
     TextView mTextTitle;
-    @InjectView(R.id.text_author)
+    @Bind(R.id.text_author)
     TextView mTextAuthor;
-    @InjectView(R.id.button_play)
+    @Bind(R.id.button_play)
     FloatingActionButton mButtonPlay;
-    @InjectView(R.id.loading)
+    @Bind(R.id.loading)
     FrameLayout mLoading;
-    @InjectView(R.id.container_title)
+    @Bind(R.id.container_title)
     LinearLayout mContainerTitle;
-    @InjectView(R.id.view_player)
+    @Bind(R.id.view_player)
     PlayerView mPlayerView;
 
-    private MusicPlayerService.State mState = MusicPlayerService.State.Preparing;
+    @State
+    PlayerState mPlayerState = PlayerState.Preparing;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Icepick.restoreInstanceState(this, savedInstanceState);
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
-        ButterKnife.inject(this, view);
+        ButterKnife.bind(this, view);
         return view;
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        setupPlayButton();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-        intent.setAction(MusicPlayerService.ACTION_REQUEST_STATE);
-        getActivity().startService(intent);
-
+        startMusicPlayerService(MusicPlayerService.ACTION_REQUEST_STATE, null);
         BusProvider.getInstance().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
         BusProvider.getInstance().unregister(this);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ButterKnife.reset(this);
+        ButterKnife.unbind(this);
     }
 
-    private void setupPlayButton() {
-        mButtonPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                if (mState != MusicPlayerService.State.Playing) {
-                    Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-                    intent.setAction(MusicPlayerService.ACTION_PLAY);
-                    getActivity().startService(intent);
-                }
-            }
-        });
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Icepick.saveInstanceState(this, outState);
+    }
+
+    @OnClick(R.id.button_play)
+    void onClickPlay() {
+        if (mPlayerState == PlayerState.Playing) {
+            return;
+        }
+        startMusicPlayerService(MusicPlayerService.ACTION_PLAY, null);
+    }
+
+    private void startMusicPlayerService(String action, Info info) {
+        Intent intent = new Intent(getContext(), MusicPlayerService.class)
+                .setAction(action);
+        if (info!= null) {
+            intent.putExtra("info", info);
+        }
+        getContext().startService(intent);
     }
 
     private void hidePlayButton() {
@@ -227,37 +240,46 @@ public class MainFragment extends Fragment {
                 .setListener(null);
     }
 
-    private class GetContentTask extends AsyncTask<Void, Void, Info> {
-        @Override
-        protected void onPreExecute() {
-            mLoading.setVisibility(View.VISIBLE);
-        }
+    private void getRadioContent() {
+        Observables.usingProgressDialog(getContext())
+                .flatMap(new Func1<Void, Observable<Info>>() {
+                    @Override
+                    public Observable<Info> call(Void aVoid) {
+                        return InfoUtil.getInfo()
+                                .subscribeOn(Schedulers.io());
+                    }
+                })
+                .compose(this.<Info>bindToLifecycle())
+                .observeOn(AndroidSchedulers.mainThread())
+                .toSingle()
+                .subscribe(new SingleSubscriber<Info>() {
+                    @Override
+                    public void onSuccess(Info value) {
+                        startMusicPlayerService(MusicPlayerService.ACTION_REQUEST_STATE, value);
+                        Timber.d(value.getUrl());
+                    }
 
-        @Override
-        protected Info doInBackground(Void... params) {
-            return InfoUtil.getInfo();
-        }
+                    @Override
+                    public void onError(Throwable error) {
+                        showErrorToast(error);
+                    }
+                });
+    }
 
-        @Override
-        protected void onPostExecute(Info info) {
-            mLoading.setVisibility(View.INVISIBLE);
-            if (info == null) {
-                return;
-            }
-            Timber.d(info.getUrl());
-            Intent intent = new Intent(getActivity(), MusicPlayerService.class)
-                    .setAction(MusicPlayerService.ACTION_REQUEST_STATE)
-                    .putExtra("info", info);
-            getActivity().startService(intent);
+    private void showErrorToast(Throwable error) {
+        if (error instanceof IOException) {
+            // ネットワークエラー
+            ToastUtil.showNetworkError(getContext());
+        } else {
+            ToastUtil.showOtherError(getContext());
         }
+        Timber.e(error, error.getMessage());
     }
 
     @Subscribe
     public void onClickPause(ClickPauseEvent event) {
-        if (mState != MusicPlayerService.State.Paused) {
-            Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-            intent.setAction(MusicPlayerService.ACTION_PAUSE);
-            getActivity().startService(intent);
+        if (mPlayerState != PlayerState.Paused) {
+            startMusicPlayerService(MusicPlayerService.ACTION_PAUSE, null);
         }
     }
 
@@ -278,8 +300,8 @@ public class MainFragment extends Fragment {
 
         mPlayerView.updatePlayer(intent);
 
-        mState = (MusicPlayerService.State) intent.getSerializableExtra("state");
-        switch (mState) {
+        mPlayerState = (PlayerState) intent.getSerializableExtra("state");
+        switch (mPlayerState) {
             case Playing:
                 hidePlayButton();
                 mPlayerView.start();
@@ -303,7 +325,7 @@ public class MainFragment extends Fragment {
                 mLoading.setVisibility(View.VISIBLE);
                 break;
             default:
-                new GetContentTask().execute();
+                getRadioContent();
                 break;
         }
     }
